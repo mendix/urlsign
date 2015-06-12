@@ -64,6 +64,10 @@ Some basic tests are provided:
 mvn test
 ```
 
+## Limitations
+
+- The library is unable to handle passphrase-protected private key files, which is obviously not what you would want to use on your server/in your application anyways.
+
 ## Work in progress
 
 This library is a work in progress, therefore it will probably change soon.
