@@ -53,7 +53,7 @@ Given a signed URL, its validity can be verified using the public key with:
 ```java
 String publicKeyFileName = "id_rsa.pub";
 URLVerifier urlVerifier = new URLVerifier(new File(publicKeyFileName));
-boolean valid = urlVerifier.verify(signedUri)
+boolean valid = urlVerifier.verify(signedUri);
 ```
 If the signature is valid and the expire date is not passed then ```valid``` will be ```true```.
 
