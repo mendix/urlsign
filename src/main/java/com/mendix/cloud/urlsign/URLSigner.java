@@ -24,15 +24,15 @@ public class URLSigner {
     private static PrivateKey key;
     private static Signature signature;
 
-    public URLSigner(byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
+    public URLSigner(byte[] privateKey) {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(String privateKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchProviderException {
+    public URLSigner(String privateKey) {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(File privateKeyFile) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchProviderException {
+    public URLSigner(File privateKeyFile) {
         this(KeyImporter.importPrivateKey(privateKeyFile));
     }
 
@@ -42,11 +42,11 @@ public class URLSigner {
         try {
             signature = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    public URI sign(URI uri, int ttlInSeconds) throws SignatureException, URISyntaxException, InvalidKeyException {
+    public URI sign(URI uri, int ttlInSeconds) {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
         Date timestampExpiry = new Date(timestampNow.getTime() + (TimeUnit.SECONDS.toMillis(ttlInSeconds)));
@@ -55,18 +55,24 @@ public class URLSigner {
         URIBuilder uriBuilder = new URIBuilder(uri);
         uriBuilder.addParameter(URL_EXPIRE, expiryValue);
 
-        String uriToSign = uriBuilder.build().toString();
-        byte[] signature = getSignature(uriToSign.getBytes());
-
-        String signatureValue = DatatypeConverter.printBase64Binary(signature);
-        uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
-
-        return uriBuilder.build();
+        try {
+            String uriToSign = uriBuilder.build().toString();
+            byte[] signature = getSignature(uriToSign.getBytes());
+            String signatureValue = DatatypeConverter.printBase64Binary(signature);
+            uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
+            return uriBuilder.build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public byte[] getSignature(byte[] message) throws SignatureException, InvalidKeyException {
-        signature.initSign(key);
-        signature.update(message);
-        return signature.sign();
+    public byte[] getSignature(byte[] message) {
+        try {
+            signature.initSign(key);
+            signature.update(message);
+            return signature.sign();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
