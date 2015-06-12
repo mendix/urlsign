@@ -71,7 +71,6 @@ public class KeyImporter {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
             return keyFactory.generatePublic(spec);
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -81,8 +80,12 @@ public class KeyImporter {
         return importPublicKey(DatatypeConverter.parseBase64Binary(publicKey.split(" ")[1]));
     }
 
-    public static PublicKey importPublicKey(File publicKeyFile) throws IOException {
-        return importPublicKey(new String(Files.readAllBytes(publicKeyFile.toPath()), StandardCharsets.UTF_8));
+    public static PublicKey importPublicKey(File publicKeyFile) {
+        try {
+            return importPublicKey(new String(Files.readAllBytes(publicKeyFile.toPath()), StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static byte[] readElement(DataInput dis) {

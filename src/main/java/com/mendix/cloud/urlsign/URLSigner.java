@@ -24,15 +24,15 @@ public class URLSigner {
     private static PrivateKey key;
     private static Signature signature;
 
-    public URLSigner(byte[] privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
+    public URLSigner(byte[] privateKey) {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(String privateKey) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchProviderException {
+    public URLSigner(String privateKey) {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(File privateKeyFile) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, NoSuchProviderException {
+    public URLSigner(File privateKeyFile) {
         this(KeyImporter.importPrivateKey(privateKeyFile));
     }
 
