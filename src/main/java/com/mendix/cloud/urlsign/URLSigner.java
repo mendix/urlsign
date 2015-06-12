@@ -1,3 +1,5 @@
+package com.mendix.cloud.urlsign;
+
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 

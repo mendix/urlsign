@@ -1,3 +1,5 @@
+package com.mendix.cloud.urlsign;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemReader;
 

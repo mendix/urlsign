@@ -1,3 +1,5 @@
+package com.mendix.cloud.urlsign;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
