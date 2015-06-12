@@ -23,27 +23,39 @@ public class KeyImporter {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static PrivateKey importPrivateKey(byte[] privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    public static PrivateKey importPrivateKey(byte[] privateKey) {
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKey);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
-        return keyFactory.generatePrivate(spec);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
+            return keyFactory.generatePrivate(spec);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static PrivateKey importPrivateKey(String privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException, NoSuchProviderException {
-        privateKey = privateKey.replace(PEM_SSLEAY_BEGIN, "").replace(PEM_SSLEAY_END, "");
-        return importPrivateKey(DatatypeConverter.parseBase64Binary(privateKey));
+    public static PrivateKey importPrivateKey(String privateKey) {
+        try {
+            privateKey = privateKey.replace(PEM_SSLEAY_BEGIN, "").replace(PEM_SSLEAY_END, "");
+            return importPrivateKey(DatatypeConverter.parseBase64Binary(privateKey));
+        } catch ( Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static PrivateKey importPrivateKey(File privateKeyFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
-        PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(privateKeyFile)));
-        return importPrivateKey(pemReader.readPemObject().getContent());
+    public static PrivateKey importPrivateKey(File privateKeyFile) {
+        try {
+            PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(privateKeyFile)));
+            return importPrivateKey(pemReader.readPemObject().getContent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /*
      * Heavily based on:
      * https://github.com/ragnar-johannsson/CloudStack/blob/master/utils/src/com/cloud/utils/crypt/RSAHelper.java
      */
-    public static PublicKey importPublicKey(byte[] publicKey) throws IOException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static PublicKey importPublicKey(byte[] publicKey) {
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(publicKey));
 
         byte[] header = readElement(dis);
@@ -56,22 +68,31 @@ public class KeyImporter {
         byte[] modulus = readElement(dis);
 
         KeySpec spec = new RSAPublicKeySpec(new BigInteger(modulus), new BigInteger(publicExponent));
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
-        return keyFactory.generatePublic(spec);
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
+            return keyFactory.generatePublic(spec);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static PublicKey importPublicKey(String publicKey) throws IOException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static PublicKey importPublicKey(String publicKey)  {
         return importPublicKey(DatatypeConverter.parseBase64Binary(publicKey.split(" ")[1]));
     }
 
-    public static PublicKey importPublicKey(File publicKeyFile) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public static PublicKey importPublicKey(File publicKeyFile) throws IOException {
         return importPublicKey(new String(Files.readAllBytes(publicKeyFile.toPath()), StandardCharsets.UTF_8));
     }
 
-    private static byte[] readElement(DataInput dis) throws IOException {
-        int len = dis.readInt();
-        byte[] buf = new byte[len];
-        dis.readFully(buf);
-        return buf;
+    private static byte[] readElement(DataInput dis) {
+        try {
+            int len = dis.readInt();
+            byte[] buf = new byte[len];
+            dis.readFully(buf);
+            return buf;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
