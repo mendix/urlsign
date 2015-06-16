@@ -1,4 +1,4 @@
-package com.mendix.cloud.urlsign.utils;
+package com.mendix.cloud.urlsign.util;
 
 import javax.servlet.http.HttpServletRequest;
 

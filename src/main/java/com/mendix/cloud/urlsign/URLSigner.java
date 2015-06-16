@@ -1,5 +1,7 @@
 package com.mendix.cloud.urlsign;
 
+import com.mendix.cloud.urlsign.exception.KeyImporterException;
+import com.mendix.cloud.urlsign.exception.URLSignerException;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -22,29 +24,29 @@ public class URLSigner {
     private static PrivateKey key;
     private static Signature signature;
 
-    public URLSigner(byte[] privateKey) {
+    public URLSigner(byte[] privateKey) throws KeyImporterException, URLSignerException {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(String privateKey) {
+    public URLSigner(String privateKey) throws KeyImporterException, URLSignerException {
         this(KeyImporter.importPrivateKey(privateKey));
     }
 
-    public URLSigner(File privateKeyFile) {
+    public URLSigner(File privateKeyFile) throws KeyImporterException, URLSignerException {
         this(KeyImporter.importPrivateKey(privateKeyFile));
     }
 
-    private URLSigner(PrivateKey privateKey) {
+    private URLSigner(PrivateKey privateKey) throws URLSignerException {
         key = privateKey;
 
         try {
             signature = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLSignerException(e);
         }
     }
 
-    public URI sign(URI uri, int ttlInSeconds) {
+    public URI sign(URI uri, int ttlInSeconds) throws URLSignerException {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
         Date timestampExpiry = new Date(timestampNow.getTime() + (TimeUnit.SECONDS.toMillis(ttlInSeconds)));
@@ -60,17 +62,17 @@ public class URLSigner {
             uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
             return uriBuilder.build();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLSignerException(e);
         }
     }
 
-    public byte[] getSignature(byte[] message) {
+    public byte[] getSignature(byte[] message) throws URLSignerException {
         try {
             signature.initSign(key);
             signature.update(message);
             return signature.sign();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLSignerException(e);
         }
     }
 }

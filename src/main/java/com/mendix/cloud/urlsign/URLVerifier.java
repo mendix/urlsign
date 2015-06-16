@@ -1,6 +1,8 @@
 package com.mendix.cloud.urlsign;
 
-import com.mendix.cloud.urlsign.utils.URLUtils;
+import com.mendix.cloud.urlsign.exception.KeyImporterException;
+import com.mendix.cloud.urlsign.exception.URLVerifierException;
+import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -8,14 +10,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -30,39 +28,39 @@ public class URLVerifier {
     private static PublicKey key;
     private static Signature verify;
 
-    public URLVerifier(byte[] publicKey) {
+    public URLVerifier(byte[] publicKey) throws KeyImporterException, URLVerifierException {
         this(KeyImporter.importPublicKey(publicKey));
     }
 
-    public URLVerifier(String publicKey) {
+    public URLVerifier(String publicKey) throws KeyImporterException, URLVerifierException {
         this(KeyImporter.importPublicKey(publicKey));
     }
 
-    public URLVerifier(File publicKeyFile) {
+    public URLVerifier(File publicKeyFile) throws KeyImporterException, URLVerifierException {
         this(KeyImporter.importPublicKey(publicKeyFile));
     }
 
-    private URLVerifier(PublicKey publicKey) {
+    private URLVerifier(PublicKey publicKey) throws URLVerifierException {
         key = publicKey;
 
         try {
             verify = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLVerifierException(e);
         }
     }
 
-    public boolean verify(HttpServletRequest request) {
+    public boolean verify(HttpServletRequest request) throws URLVerifierException {
         try {
             String encodedUri = URLUtils.getFullURL(request);
             URI uri = new URI(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()));
             return verify(uri);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLVerifierException(e);
         }
     }
 
-    public boolean verify(URI uri) {
+    public boolean verify(URI uri) throws URLVerifierException {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
 
@@ -86,7 +84,17 @@ public class URLVerifier {
             byte[] signature = DatatypeConverter.parseBase64Binary(signatureNameValuePair.getValue());
             return getVerification(uriToVerify.getBytes(), signature);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new URLVerifierException(e);
+        }
+    }
+
+    public boolean getVerification(byte[] message, byte[] signature) throws URLVerifierException {
+        try {
+            verify.initVerify(key);
+            verify.update(message);
+            return verify.verify(signature);
+        } catch (Exception e) {
+            throw new URLVerifierException(e);
         }
     }
 
@@ -97,15 +105,5 @@ public class URLVerifier {
             }
         }
         return null;
-    }
-
-    public boolean getVerification(byte[] message, byte[] signature) {
-        try {
-            verify.initVerify(key);
-            verify.update(message);
-            return verify.verify(signature);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
