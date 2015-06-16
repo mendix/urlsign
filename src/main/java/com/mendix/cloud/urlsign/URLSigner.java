@@ -5,11 +5,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import java.security.PrivateKey;
+import java.security.Signature;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
