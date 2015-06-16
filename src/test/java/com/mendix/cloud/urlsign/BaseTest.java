@@ -1,5 +1,6 @@
 package com.mendix.cloud.urlsign;
 
+import com.mendix.cloud.urlsign.exception.functional.URLVerificationInvalidException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,13 +31,13 @@ public class BaseTest {
         assertTrue(urlVerifier.verify(signedUri));
     }
 
-    @Test
+    @Test(expected = URLVerificationInvalidException.class)
     public void endToEndTestFailure() throws Exception {
         URLSigner urlSigner = new URLSigner(new File(privateKeyFileName));
         URLVerifier urlVerifier = new URLVerifier(new File(publicKeyFileName));
 
         URI signedUri = urlSigner.sign(new URI("https://www.mendix.com"), -10);
-        assertFalse(urlVerifier.verify(signedUri));
+        urlVerifier.verify(signedUri);
     }
 
     @Test

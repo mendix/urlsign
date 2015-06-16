@@ -2,10 +2,12 @@ package com.mendix.cloud.urlsign;
 
 import com.mendix.cloud.urlsign.exception.KeyImporterException;
 import com.mendix.cloud.urlsign.exception.URLVerifierException;
+import com.mendix.cloud.urlsign.exception.functional.URLVerificationInvalidException;
 import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import sun.net.util.URLUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
@@ -50,17 +52,33 @@ public class URLVerifier {
         }
     }
 
-    public boolean verify(HttpServletRequest request) throws URLVerifierException {
+    public boolean verify(HttpServletRequest request) throws URLVerifierException, URLVerificationInvalidException {
+        if(verifyGracefully(request)) {
+            return true;
+        } else {
+            throw new URLVerificationInvalidException("URL Verification failed for URL: " + URLUtils.getFullURL(request));
+        }
+    }
+
+    public boolean verify(URI uri) throws URLVerifierException, URLVerificationInvalidException {
+        if(verifyGracefully(uri)) {
+            return true;
+        } else {
+            throw new URLVerificationInvalidException("URL Verification failed for URL: " + uri.toString());
+        }
+    }
+
+    public boolean verifyGracefully(HttpServletRequest request) throws URLVerifierException {
         try {
             String encodedUri = URLUtils.getFullURL(request);
             URI uri = new URI(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()));
-            return verify(uri);
+            return verifyGracefully(uri);
         } catch (Exception e) {
             throw new URLVerifierException(e);
         }
     }
 
-    public boolean verify(URI uri) throws URLVerifierException {
+    public boolean verifyGracefully(URI uri) throws URLVerifierException {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
 
