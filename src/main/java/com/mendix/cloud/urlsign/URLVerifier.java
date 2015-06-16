@@ -1,14 +1,18 @@
 package com.mendix.cloud.urlsign;
 
+import com.mendix.cloud.urlsign.utils.URLUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
@@ -43,6 +47,16 @@ public class URLVerifier {
 
         try {
             verify = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean verify(HttpServletRequest request) {
+        try {
+            String encodedUri = URLUtils.getFullURL(request);
+            URI uri = new URI(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()));
+            return verify(uri);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
