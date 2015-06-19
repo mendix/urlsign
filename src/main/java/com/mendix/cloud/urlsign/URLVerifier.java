@@ -7,14 +7,11 @@ import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import sun.net.util.URLUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -70,8 +67,7 @@ public class URLVerifier {
 
     public boolean verifyGracefully(HttpServletRequest request) throws URLVerifierException {
         try {
-            String encodedUri = URLUtils.getFullURL(request);
-            URI uri = new URI(URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()));
+            URI uri = new URI(URLUtils.getFullURL(request));
             return verifyGracefully(uri);
         } catch (Exception e) {
             throw new URLVerifierException(e);
