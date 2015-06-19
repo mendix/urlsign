@@ -57,7 +57,7 @@ public class URLSigner {
         uriBuilder.addParameter(URL_EXPIRE, expiryValue);
 
         try {
-            String uriToSign = uriBuilder.build().toString();
+            String uriToSign = uriBuilder.build().toASCIIString();
             byte[] signature = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
             String signatureValue = DatatypeConverter.printBase64Binary(signature);
             uriBuilder.addParameter(URL_SIGNATURE, signatureValue);

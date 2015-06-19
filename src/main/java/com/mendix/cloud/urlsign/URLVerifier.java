@@ -62,7 +62,7 @@ public class URLVerifier {
         if(verifyGracefully(uri)) {
             return true;
         } else {
-            throw new URLVerificationInvalidException("URL Verification failed for URL: " + uri.toString());
+            throw new URLVerificationInvalidException("URL Verification failed for URL: " + uri.toASCIIString());
         }
     }
 
@@ -79,7 +79,13 @@ public class URLVerifier {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
 
-        URIBuilder uriBuilder = new URIBuilder(uri);
+        URIBuilder uriBuilder;
+        try {
+            uriBuilder = new URIBuilder(uri.toASCIIString());
+        } catch (Exception e) {
+            throw new URLVerifierException(e);
+        }
+
         List<NameValuePair> queryParams = uriBuilder.getQueryParams();
         NameValuePair expireNameValuePair = extractQueryParam(URL_EXPIRE, queryParams);
 
@@ -95,7 +101,7 @@ public class URLVerifier {
             queryParams.remove(signatureNameValuePair);
             uriBuilder.setParameters(queryParams);
 
-            String uriToVerify = uriBuilder.build().toString();
+            String uriToVerify = uriBuilder.build().toASCIIString();
             byte[] signature = DatatypeConverter.parseBase64Binary(signatureNameValuePair.getValue());
             return getVerification(uriToVerify.getBytes(StandardCharsets.UTF_8.name()), signature);
         } catch (Exception e) {
