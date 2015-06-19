@@ -20,7 +20,7 @@ public class URLUtils {
         }
 
         try {
-            return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.toString());
+            return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.name());
         } catch (Exception e) {
             throw new URLVerifierException(e);
         }

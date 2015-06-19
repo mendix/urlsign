@@ -8,6 +8,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.text.SimpleDateFormat;
@@ -57,7 +58,7 @@ public class URLSigner {
 
         try {
             String uriToSign = uriBuilder.build().toString();
-            byte[] signature = getSignature(uriToSign.getBytes());
+            byte[] signature = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
             String signatureValue = DatatypeConverter.printBase64Binary(signature);
             uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
             return uriBuilder.build();
