@@ -13,7 +13,8 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -102,7 +103,9 @@ public class URLVerifier {
             uriBuilder.setParameters(queryParams);
 
             String uriToVerify = uriBuilder.build().toASCIIString();
-            byte[] signature = DatatypeConverter.parseBase64Binary(signatureNameValuePair.getValue());
+
+            String unescapedSignatureValue = URLUtils.unescapeBase64String(signatureNameValuePair.getValue());
+            byte[] signature = DatatypeConverter.parseBase64Binary(unescapedSignatureValue);
             return getVerification(uriToVerify.getBytes(StandardCharsets.UTF_8.name()), signature);
         } catch (Exception e) {
             throw new URLVerifierException(e);

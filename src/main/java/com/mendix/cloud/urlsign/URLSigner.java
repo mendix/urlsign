@@ -2,6 +2,7 @@ package com.mendix.cloud.urlsign;
 
 import com.mendix.cloud.urlsign.exception.KeyImporterException;
 import com.mendix.cloud.urlsign.exception.URLSignerException;
+import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -60,7 +61,8 @@ public class URLSigner {
             String uriToSign = uriBuilder.build().toASCIIString();
             byte[] signature = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
             String signatureValue = DatatypeConverter.printBase64Binary(signature);
-            uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
+            String signatureValueEscaped = URLUtils.escapeBase64String(signatureValue);
+            uriBuilder.addParameter(URL_SIGNATURE, signatureValueEscaped);
             return uriBuilder.build();
         } catch (Exception e) {
             throw new URLSignerException(e);
