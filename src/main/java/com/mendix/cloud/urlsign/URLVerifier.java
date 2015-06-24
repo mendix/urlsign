@@ -83,6 +83,9 @@ public class URLVerifier {
         URIBuilder uriBuilder = new URIBuilder(uri);
         List<NameValuePair> queryParams = uriBuilder.getQueryParams();
         NameValuePair expireNameValuePair = extractQueryParam(URL_EXPIRE, queryParams);
+        if(expireNameValuePair == null) {
+            throw new URLVerifierException("Missing '" + URL_EXPIRE + "' query parameter in URL: " + uri.toString());
+        }
 
         try {
             Date timestampExpiry = dateFormat.parse(expireNameValuePair.getValue());
@@ -93,6 +96,9 @@ public class URLVerifier {
             }
 
             NameValuePair signatureNameValuePair = extractQueryParam(URL_SIGNATURE, queryParams);
+            if(signatureNameValuePair == null) {
+                throw new URLVerifierException("Missing '" + URL_SIGNATURE + "' query parameter in URL: " + uri.toString());
+            }
             queryParams.remove(signatureNameValuePair);
             uriBuilder.setParameters(queryParams);
 
