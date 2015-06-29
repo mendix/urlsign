@@ -44,7 +44,7 @@ URI signedUri = urlSigner.sign(new URI("https://www.mendix.com"), 10);
 ```
 will generate the following signed URI:
 ```
-https://www.mendix.com/?expire=20150611150101&signature=<base64 encoded signature>
+https://www.mendix.com/?expire=20150611150101&signature=<hex encoded signature>
 ```
 
 ### Verify a signed URL

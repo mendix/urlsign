@@ -60,9 +60,8 @@ public class URLSigner {
         try {
             String uriToSign = uriBuilder.build().toString();
             byte[] signature = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
-            String signatureValue = DatatypeConverter.printBase64Binary(signature);
-            String signatureValueEscaped = URLUtils.escapeBase64String(signatureValue);
-            uriBuilder.addParameter(URL_SIGNATURE, signatureValueEscaped);
+            String signatureValue = DatatypeConverter.printHexBinary(signature);
+            uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
             return uriBuilder.build();
         } catch (Exception e) {
             throw new URLSignerException(e);

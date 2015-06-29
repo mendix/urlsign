@@ -104,8 +104,7 @@ public class URLVerifier {
 
             String uriToVerify = uriBuilder.build().toString();
 
-            String unescapedSignatureValue = URLUtils.unescapeBase64String(signatureNameValuePair.getValue());
-            byte[] signature = DatatypeConverter.parseBase64Binary(unescapedSignatureValue);
+            byte[] signature = DatatypeConverter.parseHexBinary(signatureNameValuePair.getValue());
             return getVerification(uriToVerify.getBytes(StandardCharsets.UTF_8.name()), signature);
         } catch (Exception e) {
             throw new URLVerifierException(e);
