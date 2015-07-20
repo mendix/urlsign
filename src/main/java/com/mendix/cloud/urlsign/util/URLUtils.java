@@ -22,6 +22,11 @@ public class URLUtils {
             fullUrl = requestURL.append('?').append(queryString).toString();
         }
 
+        String forwardedProtocol = request.getHeader("X-Forwarded-Proto");
+        if (forwardedProtocol != null) {
+            fullUrl = fullUrl.replaceFirst("http://", forwardedProtocol + "://");
+        }
+
         try {
             return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.name());
         } catch (Exception e) {
