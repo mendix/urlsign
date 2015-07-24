@@ -8,8 +8,8 @@ import java.nio.charset.StandardCharsets;
 
 public class URLUtils {
 
-    final static char[] chars1 = {'+', '=', '/'};
-    final static char[] chars2 = {'~', '-', '_'};
+    private static final char[] chars1 = {'+', '=', '/'};
+    private static final char[] chars2 = {'~', '-', '_'};
 
     public static String getFullURL(HttpServletRequest request) throws URLVerifierException {
         StringBuffer requestURL = request.getRequestURL();
