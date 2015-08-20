@@ -2,16 +2,16 @@ package com.mendix.cloud.urlsign;
 
 import com.mendix.cloud.urlsign.exception.KeyImporterException;
 import com.mendix.cloud.urlsign.exception.URLSignerException;
-import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.security.Signature;
+import java.security.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -21,7 +21,6 @@ public class URLSigner {
 
     public static final String URL_EXPIRE = "expire";
     public static final String URL_SIGNATURE = "signature";
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
     private static PrivateKey key;
     private static Signature signature;
@@ -43,12 +42,15 @@ public class URLSigner {
 
         try {
             signature = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
-        } catch (Exception e) {
-            throw new URLSignerException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new URLSignerException("No Such Algorithm.", e);
+        } catch (NoSuchProviderException e) {
+            throw new URLSignerException("No Such Provider.", e);
         }
     }
 
     public URI sign(URI uri, int ttlInSeconds) throws URLSignerException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
         Date timestampExpiry = new Date(timestampNow.getTime() + (TimeUnit.SECONDS.toMillis(ttlInSeconds)));
@@ -59,12 +61,14 @@ public class URLSigner {
 
         try {
             String uriToSign = uriBuilder.build().toString();
-            byte[] signature = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
-            String signatureValue = DatatypeConverter.printHexBinary(signature);
+            byte[] signatureBytes = getSignature(uriToSign.getBytes(StandardCharsets.UTF_8.name()));
+            String signatureValue = DatatypeConverter.printHexBinary(signatureBytes);
             uriBuilder.addParameter(URL_SIGNATURE, signatureValue);
             return uriBuilder.build();
-        } catch (Exception e) {
-            throw new URLSignerException(e);
+        } catch (URISyntaxException e) {
+            throw new URLSignerException("Error while building URI.", e);
+        } catch (UnsupportedEncodingException e) {
+            throw new URLSignerException("Error while signing URI.", e);
         }
     }
 
@@ -73,8 +77,10 @@ public class URLSigner {
             signature.initSign(key);
             signature.update(message);
             return signature.sign();
-        } catch (Exception e) {
-            throw new URLSignerException(e);
+        } catch (InvalidKeyException e) {
+            throw new URLSignerException("Invalid Key.", e);
+        } catch (SignatureException e) {
+            throw new URLSignerException("Invalid Signature.", e);
         }
     }
 }

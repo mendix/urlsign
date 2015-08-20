@@ -3,6 +3,7 @@ package com.mendix.cloud.urlsign.util;
 import com.mendix.cloud.urlsign.exception.URLVerifierException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -10,6 +11,9 @@ public class URLUtils {
 
     private static final char[] chars1 = {'+', '=', '/'};
     private static final char[] chars2 = {'~', '-', '_'};
+
+    private URLUtils() {
+    }
 
     public static String getFullURL(HttpServletRequest request) throws URLVerifierException {
         StringBuffer requestURL = request.getRequestURL();
@@ -29,8 +33,8 @@ public class URLUtils {
 
         try {
             return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.name());
-        } catch (Exception e) {
-            throw new URLVerifierException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new URLVerifierException("Error while decoding full URL.", e);
         }
     }
 

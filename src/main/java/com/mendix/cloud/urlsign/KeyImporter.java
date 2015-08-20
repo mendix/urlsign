@@ -9,10 +9,8 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Security;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -26,31 +24,47 @@ public class KeyImporter {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private KeyImporter(){
+    }
+
     public static PrivateKey importPrivateKey(byte[] privateKey) throws KeyImporterException {
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privateKey);
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
             return keyFactory.generatePrivate(spec);
-        } catch (Exception e) {
-            throw new KeyImporterException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new KeyImporterException("No Such Algorithm.", e);
+        } catch (NoSuchProviderException e) {
+            throw new KeyImporterException("No Such Provider.", e);
+        } catch (InvalidKeySpecException e) {
+            throw new KeyImporterException("Invalid Key Specification.", e);
         }
     }
 
     public static PrivateKey importPrivateKey(String privateKey) throws KeyImporterException {
-        try {
-            privateKey = privateKey.replace(PEM_SSLEAY_BEGIN, "").replace(PEM_SSLEAY_END, "");
-            return importPrivateKey(DatatypeConverter.parseBase64Binary(privateKey));
-        } catch (Exception e) {
-            throw new KeyImporterException(e);
-        }
+        String privateKeyTrimmed = privateKey.replace(PEM_SSLEAY_BEGIN, "").replace(PEM_SSLEAY_END, "");
+        return importPrivateKey(DatatypeConverter.parseBase64Binary(privateKeyTrimmed));
     }
 
     public static PrivateKey importPrivateKey(File privateKeyFile) throws KeyImporterException {
         try {
-            PemReader pemReader = new PemReader(new InputStreamReader(new FileInputStream(privateKeyFile)));
+            return readPrivateKey(privateKeyFile);
+        } catch (IOException e) {
+            throw new KeyImporterException("Error while closing PemReader.", e);
+        }
+    }
+
+    private static PrivateKey readPrivateKey(File privateKeyFile) throws KeyImporterException, IOException {
+        PemReader pemReader = null;
+        try {
+            pemReader = new PemReader(new InputStreamReader(new FileInputStream(privateKeyFile)));
             return importPrivateKey(pemReader.readPemObject().getContent());
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new KeyImporterException("Error while reading PrivateKey.", e);
+        } finally {
+            if(pemReader != null) {
+                pemReader.close();
+            }
         }
     }
 
@@ -63,7 +77,7 @@ public class KeyImporter {
 
         byte[] header = readElement(dis);
         String pubKeyFormat = new String(header);
-        if (!pubKeyFormat.equals("ssh-rsa")) {
+        if (!"ssh-rsa".equals(pubKeyFormat)) {
             throw new KeyImporterException("Unsupported format used for PublicKey.");
         }
 
@@ -74,8 +88,12 @@ public class KeyImporter {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME);
             return keyFactory.generatePublic(spec);
-        } catch (Exception e) {
-            throw new KeyImporterException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new KeyImporterException("No Such Algorithm.", e);
+        } catch (NoSuchProviderException e) {
+            throw new KeyImporterException("No Such Provider.", e);
+        } catch (InvalidKeySpecException e) {
+            throw new KeyImporterException("Invalid Key Specification.", e);
         }
     }
 
@@ -86,8 +104,8 @@ public class KeyImporter {
     public static PublicKey importPublicKey(File publicKeyFile) throws KeyImporterException {
         try {
             return importPublicKey(new String(Files.readAllBytes(publicKeyFile.toPath()), StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            throw new KeyImporterException(e);
+        } catch (IOException e) {
+            throw new KeyImporterException("Error while reading PublicKey.", e);
         }
     }
 
@@ -97,7 +115,7 @@ public class KeyImporter {
             byte[] buf = new byte[len];
             dis.readFully(buf);
             return buf;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new KeyImporterException("Error while reading DataInput for PublicKey.", e);
         }
     }
