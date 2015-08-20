@@ -1,6 +1,6 @@
 package com.mendix.cloud.urlsign.util;
 
-import com.mendix.cloud.urlsign.exception.URLVerifierException;
+import com.mendix.cloud.urlsign.exception.URLSignException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -15,7 +15,7 @@ public class URLUtils {
     private URLUtils() {
     }
 
-    public static String getFullURL(HttpServletRequest request) throws URLVerifierException {
+    public static String getFullURL(HttpServletRequest request) throws URLSignException {
         StringBuffer requestURL = request.getRequestURL();
         String queryString = request.getQueryString();
 
@@ -34,7 +34,7 @@ public class URLUtils {
         try {
             return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
-            throw new URLVerifierException("Error while decoding full URL.", e);
+            throw new URLSignException("Error while decoding full URL.", e);
         }
     }
 

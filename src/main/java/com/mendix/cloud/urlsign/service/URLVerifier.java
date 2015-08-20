@@ -1,8 +1,7 @@
-package com.mendix.cloud.urlsign;
+package com.mendix.cloud.urlsign.service;
 
-import com.mendix.cloud.urlsign.exception.KeyImporterException;
-import com.mendix.cloud.urlsign.exception.URLVerifierException;
-import com.mendix.cloud.urlsign.exception.functional.URLVerificationInvalidException;
+import com.mendix.cloud.urlsign.exception.URLSignException;
+import com.mendix.cloud.urlsign.util.KeyImporter;
 import com.mendix.cloud.urlsign.util.URLUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -30,56 +29,56 @@ public class URLVerifier {
     private static PublicKey key;
     private static Signature verify;
 
-    public URLVerifier(byte[] publicKey) throws KeyImporterException, URLVerifierException {
+    public URLVerifier(byte[] publicKey) throws URLSignException {
         this(KeyImporter.importPublicKey(publicKey));
     }
 
-    public URLVerifier(String publicKey) throws KeyImporterException, URLVerifierException {
+    public URLVerifier(String publicKey) throws URLSignException {
         this(KeyImporter.importPublicKey(publicKey));
     }
 
-    public URLVerifier(File publicKeyFile) throws KeyImporterException, URLVerifierException {
+    public URLVerifier(File publicKeyFile) throws URLSignException {
         this(KeyImporter.importPublicKey(publicKeyFile));
     }
 
-    private URLVerifier(PublicKey publicKey) throws URLVerifierException {
+    private URLVerifier(PublicKey publicKey) throws URLSignException {
         key = publicKey;
 
         try {
             verify = Signature.getInstance("SHA1withRSA/ISO9796-2", BouncyCastleProvider.PROVIDER_NAME);
         } catch (NoSuchAlgorithmException e) {
-            throw new URLVerifierException("No Such Algorithm.", e);
+            throw new URLSignException("No Such Algorithm.", e);
         } catch (NoSuchProviderException e) {
-            throw new URLVerifierException("No Such Provider.", e);
+            throw new URLSignException("No Such Provider.", e);
         }
     }
 
-    public boolean verify(HttpServletRequest request) throws URLVerifierException, URLVerificationInvalidException {
+    public boolean verify(HttpServletRequest request) throws URLSignException {
         if(verifyGracefully(request)) {
             return true;
         } else {
-            throw new URLVerificationInvalidException("URL Verification failed for URL: " + URLUtils.getFullURL(request));
+            throw new URLSignException("URL Verification failed for URL: " + URLUtils.getFullURL(request));
         }
     }
 
-    public boolean verify(URI uri) throws URLVerifierException, URLVerificationInvalidException {
+    public boolean verify(URI uri) throws URLSignException {
         if(verifyGracefully(uri)) {
             return true;
         } else {
-            throw new URLVerificationInvalidException("URL Verification failed for URL: " + uri.toString());
+            throw new URLSignException("URL Verification failed for URL: " + uri.toString());
         }
     }
 
-    public boolean verifyGracefully(HttpServletRequest request) throws URLVerifierException {
+    public boolean verifyGracefully(HttpServletRequest request) throws URLSignException {
         try {
             URI uri = new URI(URLUtils.getFullURL(request));
             return verifyGracefully(uri);
         } catch (URISyntaxException e) {
-            throw new URLVerifierException("Error while parsing URI.", e);
+            throw new URLSignException("Error while parsing URI.", e);
         }
     }
 
-    public boolean verifyGracefully(URI uri) throws URLVerifierException {
+    public boolean verifyGracefully(URI uri) throws URLSignException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date timestampNow = new Date();
@@ -99,16 +98,16 @@ public class URLVerifier {
 
             return verifySignature(signatureNameValuePair, uriToVerify);
         } catch(ParseException e) {
-            throw new URLVerifierException("Error while parsing timestamp.", e);
+            throw new URLSignException("Error while parsing timestamp.", e);
         } catch (URISyntaxException e) {
-            throw new URLVerifierException("Error while parsing URI.", e);
+            throw new URLSignException("Error while parsing URI.", e);
         }
     }
 
-    private static NameValuePair getNameValuePair(String name, List<NameValuePair> queryParams, URI uri) throws URLVerifierException {
+    private static NameValuePair getNameValuePair(String name, List<NameValuePair> queryParams, URI uri) throws URLSignException {
         NameValuePair expireNameValuePair = extractQueryParam(name, queryParams);
         if(expireNameValuePair == null) {
-            throw new URLVerifierException("Missing '" + name + "' query parameter in URL: " + uri.toString());
+            throw new URLSignException("Missing '" + name + "' query parameter in URL: " + uri.toString());
         }
         return expireNameValuePair;
     }
@@ -123,24 +122,24 @@ public class URLVerifier {
         return uriBuilder.build().toString();
     }
 
-    private boolean verifySignature(NameValuePair signatureNameValuePair, String uriToVerify) throws URLVerifierException {
+    private boolean verifySignature(NameValuePair signatureNameValuePair, String uriToVerify) throws URLSignException {
         try {
             byte[] signature = DatatypeConverter.parseHexBinary(signatureNameValuePair.getValue());
             return getVerification(uriToVerify.getBytes(StandardCharsets.UTF_8.name()), signature);
         } catch (UnsupportedEncodingException e) {
-            throw new URLVerifierException("Error while decoding signature.", e);
+            throw new URLSignException("Error while decoding signature.", e);
         }
     }
 
-    public boolean getVerification(byte[] message, byte[] signature) throws URLVerifierException {
+    public boolean getVerification(byte[] message, byte[] signature) throws URLSignException {
         try {
             verify.initVerify(key);
             verify.update(message);
             return verify.verify(signature);
         } catch (InvalidKeyException e) {
-            throw new URLVerifierException("Invalid Key.", e);
+            throw new URLSignException("Invalid Key.", e);
         } catch (SignatureException e) {
-            throw new URLVerifierException("Invalid Signature.", e);
+            throw new URLSignException("Invalid Signature.", e);
         }
     }
 

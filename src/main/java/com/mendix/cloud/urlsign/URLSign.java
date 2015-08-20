@@ -1,9 +1,8 @@
 package com.mendix.cloud.urlsign;
 
-import com.mendix.cloud.urlsign.exception.KeyImporterException;
-import com.mendix.cloud.urlsign.exception.URLSignerException;
-import com.mendix.cloud.urlsign.exception.URLVerifierException;
-import com.mendix.cloud.urlsign.exception.functional.URLVerificationInvalidException;
+import com.mendix.cloud.urlsign.exception.URLSignException;
+import com.mendix.cloud.urlsign.service.URLSigner;
+import com.mendix.cloud.urlsign.service.URLVerifier;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -15,11 +14,11 @@ public class URLSign {
     private URLSign() {
     }
 
-    public static URI sign(String privateKey, URI uri, int ttlInSeconds) throws URLSignerException, KeyImporterException {
+    public static URI sign(String privateKey, URI uri, int ttlInSeconds) throws URLSignException {
         return new URLSigner(privateKey).sign(uri, ttlInSeconds);
     }
 
-    public static boolean verify(String publicKey, HttpServletRequest request) throws URLVerificationInvalidException, URLVerifierException, KeyImporterException {
+    public static boolean verify(String publicKey, HttpServletRequest request) throws URLSignException {
         return new URLVerifier(publicKey).verify(request);
     }
 

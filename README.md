@@ -76,6 +76,5 @@ This library is a work in progress, therefore it will probably change soon.
 
 There still a lot that can be done:
 
-- Implement proper error handling.
 - Improve abstractions to support more signing algorithms.
 - Improve support for keypair formats.
