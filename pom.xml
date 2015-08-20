@@ -6,7 +6,11 @@
 
     <groupId>com.mendix.cloud</groupId>
     <artifactId>urlsign</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${build.version}</version>
+
+    <properties>
+        <build.version>1.0-SNAPSHOT</build.version>
+    </properties>
 
     <dependencies>
         <dependency>
