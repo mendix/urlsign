@@ -57,7 +57,7 @@ public class URLVerifier {
         if(verifyGracefully(request)) {
             return true;
         } else {
-            throw new URLSignException("URL Verification failed for URL: " + URLUtils.getFullURL(request));
+            throw new URLSignException("URL Verification failed for URL: " + URLUtils.getFullURL(request) + " PUBLIC_KEY:" + URLVerifier.key);
         }
     }
 
@@ -65,7 +65,7 @@ public class URLVerifier {
         if(verifyGracefully(uri)) {
             return true;
         } else {
-            throw new URLSignException("URL Verification failed for URL: " + uri.toString());
+            throw new URLSignException("URL Verification failed for URL: " + uri.toString()+ " PUBLIC_KEY:" + URLVerifier.key.toString());
         }
     }
 
