@@ -26,16 +26,27 @@ public class URLUtils {
             fullUrl = requestURL.append('?').append(queryString).toString();
         }
 
-        String forwardedProtocol = request.getHeader("X-Forwarded-Proto");
-        if (forwardedProtocol != null) {
-            fullUrl = fullUrl.replaceFirst("http://", forwardedProtocol + "://");
-        }
+        fullUrl = replaceURLSchemeIfNeeded(request, fullUrl);
 
         try {
             return URLDecoder.decode(fullUrl, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException e) {
             throw new URLSignException("Error while decoding full URL.", e);
         }
+    }
+
+    public static String replaceURLSchemeIfNeeded(HttpServletRequest request, String url) {
+        String forwardedScheme = request.getHeader("X-Forwarded-Scheme");
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+
+        String scheme = forwardedProto;
+        if (forwardedScheme != null)
+            scheme = forwardedScheme;
+
+        if (scheme != null) {
+            return url.replaceFirst("http://", scheme + "://");
+        }
+        return url;
     }
 
     public static String escapeBase64String(String str) {
