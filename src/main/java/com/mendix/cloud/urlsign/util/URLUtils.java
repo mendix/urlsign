@@ -26,9 +26,9 @@ public class URLUtils {
             fullUrl = requestURL.append('?').append(queryString).toString();
         }
 
-        String forwardedProtocol = request.getHeader("X-Forwarded-Proto");
-        if (forwardedProtocol != null) {
-            fullUrl = fullUrl.replaceFirst("http://", forwardedProtocol + "://");
+        String forwardedScheme = getScheme(request);
+        if (forwardedScheme != null) {
+            fullUrl = fullUrl.replaceFirst("http://", forwardedScheme + "://");
         }
 
         try {
@@ -36,6 +36,13 @@ public class URLUtils {
         } catch (UnsupportedEncodingException e) {
             throw new URLSignException("Error while decoding full URL.", e);
         }
+    }
+
+    public static String getScheme(HttpServletRequest request) {
+        String forwardedScheme = request.getHeader("X-Forwarded-Scheme");
+        if (forwardedScheme != null)
+            return forwardedScheme;
+        return request.getHeader("X-Forwarded-Proto");
     }
 
     public static String escapeBase64String(String str) {
